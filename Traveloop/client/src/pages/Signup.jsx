@@ -1,6 +1,71 @@
-import React from "react";
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Signup() {
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const { login } = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    const handleSignup = async (e) => {
+        e.preventDefault();
+        setError("");
+
+        // Validation
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
+        if (!termsAccepted) {
+            setError("Please accept the Terms & Conditions");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Call your backend API
+            const response = await fetch("http://localhost:5000/api/auth/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: fullName,
+                    email,
+                    password,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Signup failed. Please try again.");
+            }
+
+            const data = await response.json();
+            const { token, user } = data;
+
+            // Store in context and localStorage
+            login(user, token);
+
+            // Redirect to dashboard
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.message || "An error occurred during signup");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLoginClick = () => {
+        navigate("/");
+    };
+
     return (
         <>
             <div className="signup-container">
@@ -41,81 +106,110 @@ export default function Signup() {
                             Fill in your details to get started with Traveloop.
                         </p>
 
-                        {/* FULL NAME */}
-                        <div className="input-group">
-                            <label>Full Name</label>
+                        {error && (
+                            <div className="error-message">{error}</div>
+                        )}
 
-                            <div className="input-box">
-                                <span>👤</span>
-                                <input
-                                    type="text"
-                                    placeholder="Jayraj Panchal"
-                                />
+                        <form onSubmit={handleSignup}>
+                            {/* FULL NAME */}
+                            <div className="input-group">
+                                <label>Full Name</label>
+
+                                <div className="input-box">
+                                    <span>👤</span>
+                                    <input
+                                        type="text"
+                                        placeholder="Jayraj Panchal"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* EMAIL */}
-                        <div className="input-group">
-                            <label>Email Address</label>
+                            {/* EMAIL */}
+                            <div className="input-group">
+                                <label>Email Address</label>
 
-                            <div className="input-box">
-                                <span>✉</span>
-                                <input
-                                    type="email"
-                                    placeholder="traveler@traveloop.com"
-                                />
+                                <div className="input-box">
+                                    <span>✉</span>
+                                    <input
+                                        type="email"
+                                        placeholder="traveler@traveloop.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* PASSWORD */}
-                        <div className="input-group">
-                            <label>Password</label>
+                            {/* PASSWORD */}
+                            <div className="input-group">
+                                <label>Password</label>
 
-                            <div className="input-box">
-                                <span>🔒</span>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                />
+                                <div className="input-box">
+                                    <span>🔒</span>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* CONFIRM PASSWORD */}
-                        <div className="input-group">
-                            <label>Confirm Password</label>
+                            {/* CONFIRM PASSWORD */}
+                            <div className="input-group">
+                                <label>Confirm Password</label>
 
-                            <div className="input-box">
-                                <span>🔐</span>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                />
+                                <div className="input-box">
+                                    <span>🔐</span>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* TERMS */}
-                        <div className="terms">
-                            <input type="checkbox" />
-                            <p>
-                                I agree to the Terms & Conditions and Privacy Policy
-                            </p>
-                        </div>
+                            {/* TERMS */}
+                            <div className="terms">
+                                <input
+                                    type="checkbox"
+                                    checked={termsAccepted}
+                                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                                />
+                                <p>
+                                    I agree to the Terms & Conditions and Privacy Policy
+                                </p>
+                            </div>
 
-                        {/* BUTTON */}
-                        <button className="signup-btn">
-                            Create Account
-                        </button>
+                            {/* BUTTON */}
+                            <button
+                                type="submit"
+                                className="signup-btn"
+                                disabled={loading}
+                            >
+                                {loading ? "Creating Account..." : "Create Account"}
+                            </button>
+                        </form>
 
                         <div className="divider">Or continue with</div>
 
                         {/* SOCIAL BUTTONS */}
                         <div className="social-buttons">
-                            <button>Google</button>
-                            <button>Apple</button>
+                            <button type="button">Google</button>
+                            <button type="button">Apple</button>
                         </div>
 
                         <p className="login-text">
-                            Already have an account? <span>Login</span>
+                            Already have an account?{" "}
+                            <span onClick={handleLoginClick} style={{ cursor: "pointer" }}>
+                                Login
+                            </span>
                         </p>
                     </div>
                 </div>
@@ -374,6 +468,28 @@ export default function Signup() {
           color: white;
           font-weight: 600;
           cursor: pointer;
+        }
+
+        .error-message {
+          background: rgba(255, 67, 54, 0.1);
+          border: 1px solid rgba(255, 67, 54, 0.3);
+          color: #ff4336;
+          padding: 12px 14px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+        }
+
+        .signup-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .signup-btn:disabled:hover {
+          transform: none;
+          box-shadow: none;
         }
 
         /* RESPONSIVE */

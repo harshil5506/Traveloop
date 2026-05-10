@@ -1,6 +1,51 @@
-import React from "react";
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const { login } = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            // Call your backend API
+            const response = await fetch("http://localhost:5000/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Login failed. Please check your credentials.");
+            }
+
+            const data = await response.json();
+            const { token, user } = data;
+
+            // Store in context and localStorage
+            login(user, token);
+
+            // Redirect to dashboard
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.message || "An error occurred during login");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSignupClick = () => {
+        navigate("/signup");
+    };
+
     return (
         <>
             <div className="login-container">
@@ -41,48 +86,69 @@ export default function Login() {
                             Enter your credentials to access your dashboard.
                         </p>
 
-                        {/* EMAIL */}
-                        <div className="input-group">
-                            <label>Email Address</label>
+                        {error && (
+                            <div className="error-message">{error}</div>
+                        )}
 
-                            <div className="input-box">
-                                <span>✉</span>
-                                <input
-                                    type="email"
-                                    placeholder="navigator@traveloop.com"
-                                />
+                        <form onSubmit={handleLogin}>
+                            {/* EMAIL */}
+                            <div className="input-group">
+                                <label>Email Address</label>
+
+                                <div className="input-box">
+                                    <span>✉</span>
+                                    <input
+                                        type="email"
+                                        placeholder="navigator@traveloop.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* PASSWORD */}
-                        <div className="input-group">
-                            <div className="password-label">
-                                <label>Password</label>
-                                <span className="forgot">Forgot Password?</span>
+                            {/* PASSWORD */}
+                            <div className="input-group">
+                                <div className="password-label">
+                                    <label>Password</label>
+                                    <span className="forgot">Forgot Password?</span>
+                                </div>
+
+                                <div className="input-box">
+                                    <span>🔒</span>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
                             </div>
 
-                            <div className="input-box">
-                                <span>🔒</span>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                        </div>
-
-                        {/* BUTTON */}
-                        <button className="login-btn">Login</button>
+                            {/* BUTTON */}
+                            <button
+                                type="submit"
+                                className="login-btn"
+                                disabled={loading}
+                            >
+                                {loading ? "Logging in..." : "Login"}
+                            </button>
+                        </form>
 
                         <div className="divider">Or continue with</div>
 
                         {/* SOCIAL */}
                         <div className="social-buttons">
-                            <button>Google</button>
-                            <button>Apple</button>
+                            <button type="button">Google</button>
+                            <button type="button">Apple</button>
                         </div>
 
                         <p className="signup-text">
-                            Don't have an account? <span>Sign up</span>
+                            Don't have an account?{" "}
+                            <span onClick={handleSignupClick} style={{ cursor: "pointer" }}>
+                                Sign up
+                            </span>
                         </p>
                     </div>
                 </div>
@@ -337,6 +403,28 @@ export default function Login() {
           color: white;
           font-weight: 600;
           cursor: pointer;
+        }
+
+        .error-message {
+          background: rgba(255, 67, 54, 0.1);
+          border: 1px solid rgba(255, 67, 54, 0.3);
+          color: #ff4336;
+          padding: 12px 14px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+        }
+
+        .login-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .login-btn:disabled:hover {
+          transform: none;
+          box-shadow: none;
         }
 
         /* RESPONSIVE */
