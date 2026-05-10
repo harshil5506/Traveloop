@@ -1,82 +1,31 @@
-import db from "../config/db.js";
+import { addActivityRecord, listActivityRecords } from "../data/store.js";
 
+export const addActivity = async (req, res) => {
+  try {
+    const { stop_id, activity_name } = req.body;
 
-// ADD ACTIVITY
-export const addActivity = (req, res) => {
-
-  const {
-    stop_id,
-    activity_name,
-    activity_type,
-    activity_time,
-    activity_date,
-    location,
-    cost,
-    notes
-  } = req.body;
-
-  const query = `
-    INSERT INTO activities
-    (
-      stop_id,
-      activity_name,
-      activity_type,
-      activity_time,
-      activity_date,
-      location,
-      cost,
-      notes
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  db.query(
-    query,
-    [
-      stop_id,
-      activity_name,
-      activity_type,
-      activity_time,
-      activity_date,
-      location,
-      cost,
-      notes
-    ],
-    (err, result) => {
-
-      if (err) {
-        return res.status(500).json(err);
-      }
-
-      res.status(201).json({
-        message: "Activity added successfully"
+    if (!stop_id || !activity_name) {
+      return res.status(400).json({
+        message: "Stop and activity name are required",
       });
-
     }
-  );
 
+    const activity = await addActivityRecord(req.body);
+
+    res.status(201).json({
+      message: "Activity added successfully",
+      activity,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Unable to add activity", error: error.message });
+  }
 };
 
-
-// GET ACTIVITIES OF STOP
-export const getActivities = (req, res) => {
-
-  const stopId = req.params.stopId;
-
-  const query = `
-    SELECT * FROM activities
-    WHERE stop_id = ?
-    ORDER BY activity_date ASC
-  `;
-
-  db.query(query, [stopId], (err, result) => {
-
-    if (err) {
-      return res.status(500).json(err);
-    }
-
-    res.status(200).json(result);
-
-  });
-
+export const getActivities = async (req, res) => {
+  try {
+    const activities = await listActivityRecords(req.params.stopId);
+    res.status(200).json(activities);
+  } catch (error) {
+    res.status(500).json({ message: "Unable to fetch activities", error: error.message });
+  }
 };

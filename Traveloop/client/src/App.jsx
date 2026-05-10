@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute, PublicRoute } from "./components/ProtectedRoute";
+import NavigationBridge from "./components/NavigationBridge";
 
 import Login from "./pages/login";
 import Signup from "./pages/Signup";
@@ -22,7 +23,9 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <NavigationBridge />
         <Routes>
+          <Route path="/login" element={<Navigate to="/" replace />} />
           <Route
             path="/"
             element={
@@ -70,6 +73,10 @@ function App() {
                 <ItineraryBuilder />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/itinerary-builder"
+            element={<Navigate to="/builder" replace />}
           />
           <Route
             path="/itinerary"
@@ -142,6 +149,18 @@ function App() {
                 <AdminDashboard />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/trips"
+            element={<Navigate to="/my-trips" replace />}
+          />
+          <Route
+            path="/settings"
+            element={<Navigate to="/profile" replace />}
+          />
+          <Route
+            path="*"
+            element={<Navigate to="/dashboard" replace />}
           />
         </Routes>
       </BrowserRouter>

@@ -1,6 +1,7 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { request } from "../lib/api";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -16,24 +17,13 @@ export default function Login() {
         setLoading(true);
 
         try {
-            // Call your backend API
-            const response = await fetch("http://localhost:5000/api/auth/login", {
+            const data = await request("/auth/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
-            if (!response.ok) {
-                throw new Error("Login failed. Please check your credentials.");
-            }
-
-            const data = await response.json();
             const { token, user } = data;
-
-            // Store in context and localStorage
             login(user, token);
-
-            // Redirect to dashboard
             navigate("/dashboard");
         } catch (err) {
             setError(err.message || "An error occurred during login");

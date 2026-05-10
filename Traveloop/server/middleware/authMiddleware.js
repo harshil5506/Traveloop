@@ -15,7 +15,7 @@ export const verifyToken = (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   // VERIFY TOKEN
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET || "traveloop-dev-secret", (err, user) => {
 
     if (err) {
       return res.status(403).json({

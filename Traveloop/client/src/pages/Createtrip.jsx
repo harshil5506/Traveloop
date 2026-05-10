@@ -1,434 +1,313 @@
-import React from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createTrip } from "../lib/api";
 
 export default function CreateTrip() {
-    return (
-        <>
-            <div className="create-trip-page">
-                {/* SIDEBAR */}
-                <div className="sidebar">
-                    <div className="logo">
-                        <div className="logo-icon">◉</div>
-                        <h2>Traveloop</h2>
-                    </div>
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    destination: "",
+    start_date: "",
+    end_date: "",
+    travelers: 2,
+    trip_type: "Luxury",
+    budget: 50000,
+    description: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-                    <div className="menu">
-                        <div className="menu-item active">Dashboard</div>
-                        <div className="menu-item">My Trips</div>
-                        <div className="menu-item">Itinerary</div>
-                        <div className="menu-item">Budget</div>
-                        <div className="menu-item">Settings</div>
-                    </div>
-                </div>
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
 
-                {/* MAIN CONTENT */}
-                <div className="main-content">
-                    {/* TOP BAR */}
-                    <div className="topbar">
-                        <div>
-                            <h1>Create New Trip</h1>
-                            <p>Plan your next luxury journey with AI assistance.</p>
-                        </div>
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
 
-                        <button className="save-btn">
-                            Save Draft
-                        </button>
-                    </div>
+    try {
+      await createTrip({
+        ...form,
+        title: form.destination,
+        cover_image: "",
+      });
+      navigate("/my-trips");
+    } catch (err) {
+      setError(err.message || "Could not create trip");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                    {/* FORM */}
-                    <div className="trip-form-container">
-                        {/* LEFT FORM */}
-                        <div className="trip-form">
-                            {/* DESTINATION */}
-                            <div className="form-group">
-                                <label>Destination</label>
+  return (
+    <div className="create-trip-page">
+      <aside className="sidebar">
+        <div className="logo">
+          <div className="logo-icon">◎</div>
+          <h2>Traveloop</h2>
+        </div>
 
-                                <input
-                                    type="text"
-                                    placeholder="Enter destination city"
-                                />
-                            </div>
+        <div className="menu">
+          <div className="menu-item" onClick={() => navigate("/dashboard")}>Dashboard</div>
+          <div className="menu-item" onClick={() => navigate("/my-trips")}>My Trips</div>
+          <div className="menu-item active">Create Trip</div>
+          <div className="menu-item" onClick={() => navigate("/budget")}>Budget</div>
+          <div className="menu-item" onClick={() => navigate("/profile")}>Settings</div>
+        </div>
+      </aside>
 
-                            {/* DATES */}
-                            <div className="double-input">
-                                <div className="form-group">
-                                    <label>Start Date</label>
+      <main className="main-content">
+        <div className="topbar">
+          <div>
+            <h1>Create New Trip</h1>
+            <p>Plan your next journey and save it to your Traveloop dashboard.</p>
+          </div>
 
-                                    <input type="date" />
-                                </div>
+          <button className="save-btn" type="button" onClick={() => navigate("/my-trips")}>
+            My Trips
+          </button>
+        </div>
 
-                                <div className="form-group">
-                                    <label>End Date</label>
+        <form className="trip-form-container" onSubmit={handleSubmit}>
+          <section className="trip-form">
+            {error && <div className="error-message">{error}</div>}
 
-                                    <input type="date" />
-                                </div>
-                            </div>
-
-                            {/* TRAVELERS */}
-                            <div className="double-input">
-                                <div className="form-group">
-                                    <label>Travelers</label>
-
-                                    <input
-                                        type="number"
-                                        placeholder="2"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Trip Type</label>
-
-                                    <select>
-                                        <option>Luxury</option>
-                                        <option>Adventure</option>
-                                        <option>Family</option>
-                                        <option>Business</option>
-                                        <option>Solo</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* BUDGET */}
-                            <div className="form-group">
-                                <label>Estimated Budget</label>
-
-                                <input
-                                    type="range"
-                                    min="1000"
-                                    max="10000"
-                                />
-
-                                <div className="budget-value">
-                                    ₹ 50,000
-                                </div>
-                            </div>
-
-                            {/* NOTES */}
-                            <div className="form-group">
-                                <label>Trip Notes</label>
-
-                                <textarea
-                                    placeholder="Add preferences, hotel choices, activity interests..."
-                                ></textarea>
-                            </div>
-
-                            {/* BUTTONS */}
-                            <div className="button-group">
-                                <button className="cancel-btn">
-                                    Cancel
-                                </button>
-
-                                <button className="create-btn">
-                                    Create Trip
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* RIGHT PANEL */}
-                        <div className="preview-panel">
-                            <h2>AI Travel Assistant</h2>
-
-                            <div className="ai-card">
-                                <h3>Suggested Experience</h3>
-
-                                <p>
-                                    Based on your luxury travel preference,
-                                    we recommend premium resorts, private
-                                    transport, and curated experiences.
-                                </p>
-                            </div>
-
-                            <div className="ai-card">
-                                <h3>Best Season</h3>
-
-                                <p>
-                                    October to February offers the most
-                                    comfortable climate and sightseeing
-                                    conditions.
-                                </p>
-                            </div>
-
-                            <div className="ai-card">
-                                <h3>Estimated Cost</h3>
-
-                                <p>
-                                    Flights, hotels, food, and activities
-                                    are projected around ₹50,000 - ₹80,000.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div className="form-group">
+              <label>Destination</label>
+              <input
+                type="text"
+                placeholder="Enter destination city"
+                value={form.destination}
+                onChange={(event) => updateField("destination", event.target.value)}
+                required
+              />
             </div>
 
-            <style>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: "Poppins", sans-serif;
-        }
+            <div className="double-input">
+              <div className="form-group">
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  value={form.start_date}
+                  onChange={(event) => updateField("start_date", event.target.value)}
+                  required
+                />
+              </div>
 
-        body {
-          background: #050816;
-        }
+              <div className="form-group">
+                <label>End Date</label>
+                <input
+                  type="date"
+                  value={form.end_date}
+                  onChange={(event) => updateField("end_date", event.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
+            <div className="double-input">
+              <div className="form-group">
+                <label>Travelers</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.travelers}
+                  onChange={(event) => updateField("travelers", event.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Trip Type</label>
+                <select
+                  value={form.trip_type}
+                  onChange={(event) => updateField("trip_type", event.target.value)}
+                >
+                  <option>Luxury</option>
+                  <option>Adventure</option>
+                  <option>Family</option>
+                  <option>Business</option>
+                  <option>Solo</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Estimated Budget</label>
+              <input
+                type="range"
+                min="1000"
+                max="300000"
+                step="1000"
+                value={form.budget}
+                onChange={(event) => updateField("budget", event.target.value)}
+              />
+              <div className="budget-value">₹ {Number(form.budget).toLocaleString("en-IN")}</div>
+            </div>
+
+            <div className="form-group">
+              <label>Trip Notes</label>
+              <textarea
+                placeholder="Add preferences, hotel choices, activity interests..."
+                value={form.description}
+                onChange={(event) => updateField("description", event.target.value)}
+              />
+            </div>
+
+            <div className="button-group">
+              <button className="cancel-btn" type="button" onClick={() => navigate("/dashboard")}>
+                Cancel
+              </button>
+              <button className="create-btn" type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create Trip"}
+              </button>
+            </div>
+          </section>
+
+          <aside className="preview-panel">
+            <h2>Trip Preview</h2>
+            <div className="ai-card">
+              <h3>{form.destination || "Your destination"}</h3>
+              <p>{form.description || "Add notes to personalize your plan."}</p>
+            </div>
+            <div className="ai-card">
+              <h3>Budget</h3>
+              <p>Estimated at ₹{Number(form.budget).toLocaleString("en-IN")} for {form.travelers} traveler(s).</p>
+            </div>
+            <div className="ai-card">
+              <h3>Dates</h3>
+              <p>{form.start_date || "Start date"} to {form.end_date || "End date"}</p>
+            </div>
+          </aside>
+        </form>
+      </main>
+
+      <style>{`
+        body { background: #050816; }
         .create-trip-page {
           display: flex;
           min-height: 100vh;
           background: #050816;
           color: white;
         }
-
-        /* SIDEBAR */
-
         .sidebar {
           width: 260px;
           background: #0b1020;
           border-right: 1px solid rgba(255,255,255,0.08);
           padding: 30px 20px;
-          display: flex;
-          flex-direction: column;
         }
-
         .logo {
           display: flex;
           align-items: center;
           gap: 12px;
           margin-bottom: 50px;
         }
-
         .logo-icon {
           width: 42px;
           height: 42px;
-          border-radius: 12px;
-          background: linear-gradient(
-            135deg,
-            #57c7ff,
-            #8f7cff
-          );
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #57c7ff, #8f7cff);
+          display: grid;
+          place-items: center;
         }
-
-        .logo h2 {
-          font-size: 24px;
-        }
-
-        .menu {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-
+        .logo h2 { font-size: 24px; }
+        .menu { display: flex; flex-direction: column; gap: 14px; }
         .menu-item {
           padding: 14px 18px;
-          border-radius: 14px;
+          border-radius: 8px;
           color: rgba(255,255,255,0.7);
           cursor: pointer;
-          transition: 0.3s;
         }
-
-        .menu-item:hover,
-        .menu-item.active {
-          background: rgba(255,255,255,0.08);
-          color: white;
-        }
-
-        /* MAIN CONTENT */
-
-        .main-content {
-          flex: 1;
-          padding: 40px;
-        }
-
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.08); color: white; }
+        .main-content { flex: 1; padding: 40px; }
         .topbar {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 20px;
           margin-bottom: 40px;
         }
-
-        .topbar h1 {
-          font-size: 42px;
-          margin-bottom: 8px;
-        }
-
-        .topbar p {
-          color: rgba(255,255,255,0.6);
-        }
-
-        .save-btn {
+        .topbar h1 { font-size: 42px; margin: 0 0 8px; }
+        .topbar p { color: rgba(255,255,255,0.6); margin: 0; }
+        .save-btn, .cancel-btn {
           height: 50px;
-          padding: 0 28px;
-          border: none;
-          border-radius: 14px;
+          padding: 0 26px;
+          border-radius: 8px;
           background: rgba(255,255,255,0.08);
           color: white;
           cursor: pointer;
         }
-
-        /* FORM SECTION */
-
-        .trip-form-container {
-          display: flex;
-          gap: 30px;
-        }
-
+        .trip-form-container { display: flex; gap: 30px; align-items: flex-start; }
         .trip-form {
-          flex: 2;
+          flex: 1;
           background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 24px;
-          padding: 35px;
-          backdrop-filter: blur(20px);
+          border-radius: 8px;
+          padding: 32px;
         }
-
-        .form-group {
-          margin-bottom: 26px;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 12px;
-          color: rgba(255,255,255,0.8);
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; margin-bottom: 10px; color: rgba(255,255,255,0.8); }
+        .form-group input, .form-group select, .form-group textarea {
           width: 100%;
           background: rgba(0,0,0,0.35);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 14px;
-          padding: 16px;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 8px;
+          padding: 15px;
           color: white;
           outline: none;
-          font-size: 15px;
         }
-
-        .form-group textarea {
-          min-height: 140px;
-          resize: none;
-        }
-
-        .double-input {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-        }
-
-        .budget-value {
-          margin-top: 12px;
-          color: #57c7ff;
-          font-weight: 600;
-        }
-
-        .button-group {
-          display: flex;
-          justify-content: flex-end;
-          gap: 16px;
-          margin-top: 30px;
-        }
-
-        .cancel-btn {
-          height: 54px;
-          padding: 0 28px;
-          border-radius: 14px;
-          border: none;
-          background: rgba(255,255,255,0.08);
-          color: white;
-          cursor: pointer;
-        }
-
+        .form-group textarea { min-height: 130px; resize: vertical; }
+        .double-input { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .budget-value { color: #57c7ff; font-weight: 700; margin-top: 10px; }
+        .button-group { display: flex; justify-content: flex-end; gap: 14px; }
         .create-btn {
-          height: 54px;
-          padding: 0 34px;
-          border: none;
-          border-radius: 14px;
-          background: linear-gradient(
-            90deg,
-            #57c7ff,
-            #8f7cff
-          );
+          height: 50px;
+          padding: 0 30px;
+          border-radius: 8px;
+          background: linear-gradient(90deg, #57c7ff, #8f7cff);
           color: white;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
         }
-
-        /* RIGHT PANEL */
-
+        .create-btn:disabled { opacity: 0.65; cursor: not-allowed; }
         .preview-panel {
-          width: 350px;
+          width: 340px;
           background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 24px;
-          padding: 30px;
-          height: fit-content;
+          border-radius: 8px;
+          padding: 28px;
         }
-
-        .preview-panel h2 {
-          margin-bottom: 24px;
-        }
-
+        .preview-panel h2 { margin: 0 0 20px; }
         .ai-card {
           background: rgba(255,255,255,0.05);
-          border-radius: 18px;
-          padding: 20px;
-          margin-bottom: 18px;
           border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 8px;
+          padding: 18px;
+          margin-bottom: 16px;
         }
-
-        .ai-card h3 {
-          margin-bottom: 12px;
-          color: #66d9ff;
+        .ai-card h3 { color: #66d9ff; margin: 0 0 10px; }
+        .ai-card p { color: rgba(255,255,255,0.68); line-height: 1.6; margin: 0; }
+        .error-message {
+          background: rgba(255, 67, 54, 0.12);
+          border: 1px solid rgba(255, 67, 54, 0.35);
+          border-radius: 8px;
+          color: #ff8a80;
+          margin-bottom: 22px;
+          padding: 14px 16px;
         }
-
-        .ai-card p {
-          color: rgba(255,255,255,0.65);
-          line-height: 1.7;
-          font-size: 14px;
-        }
-
-        /* RESPONSIVE */
-
         @media (max-width: 1100px) {
-          .trip-form-container {
-            flex-direction: column;
-          }
-
-          .preview-panel {
-            width: 100%;
-          }
+          .trip-form-container { flex-direction: column; }
+          .preview-panel { width: 100%; }
         }
-
         @media (max-width: 900px) {
-          .sidebar {
-            display: none;
-          }
-
-          .main-content {
-            padding: 20px;
-          }
+          .sidebar { display: none; }
+          .main-content { padding: 20px; }
         }
-
         @media (max-width: 700px) {
-          .double-input {
-            grid-template-columns: 1fr;
-          }
-
-          .topbar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 20px;
-          }
-
-          .topbar h1 {
-            font-size: 32px;
-          }
+          .topbar { flex-direction: column; align-items: flex-start; }
+          .double-input { grid-template-columns: 1fr; }
+          .topbar h1 { font-size: 32px; }
         }
       `}</style>
-        </>
-    );
+    </div>
+  );
 }

@@ -1,14 +1,18 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { request } from "../lib/api";
 
 export default function Signup() {
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
+    const [verificationChannel, setVerificationChannel] = useState("email");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [error, setError] = useState("");
+    const [notice, setNotice] = useState("");
     const [loading, setLoading] = useState(false);
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -16,6 +20,7 @@ export default function Signup() {
     const handleSignup = async (e) => {
         e.preventDefault();
         setError("");
+        setNotice("");
 
         // Validation
         if (password !== confirmPassword) {
@@ -31,29 +36,22 @@ export default function Signup() {
         setLoading(true);
 
         try {
-            // Call your backend API
-            const response = await fetch("http://localhost:5000/api/auth/signup", {
+            const data = await request("/auth/signup", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: fullName,
                     email,
+                    phone,
                     password,
+                    verificationChannel,
                 }),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Signup failed. Please try again.");
-            }
-
-            const data = await response.json();
             const { token, user } = data;
-
-            // Store in context and localStorage
             login(user, token);
-
-            // Redirect to dashboard
+            if (data.verification?.devCode) {
+                setNotice(`Development OTP: ${data.verification.devCode}`);
+            }
             navigate("/dashboard");
         } catch (err) {
             setError(err.message || "An error occurred during signup");
@@ -109,6 +107,9 @@ export default function Signup() {
                         {error && (
                             <div className="error-message">{error}</div>
                         )}
+                        {notice && (
+                            <div className="success-message">{notice}</div>
+                        )}
 
                         <form onSubmit={handleSignup}>
                             {/* FULL NAME */}
@@ -140,6 +141,38 @@ export default function Signup() {
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
                                     />
+                                </div>
+                            </div>
+
+                            {/* PHONE */}
+                            <div className="input-group">
+                                <label>Phone Number</label>
+
+                                <div className="input-box">
+                                    <span>☎</span>
+                                    <input
+                                        type="tel"
+                                        placeholder="+919876543210"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        required={verificationChannel === "sms"}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* VERIFICATION METHOD */}
+                            <div className="input-group">
+                                <label>Verification Method</label>
+
+                                <div className="input-box">
+                                    <span>✓</span>
+                                    <select
+                                        value={verificationChannel}
+                                        onChange={(e) => setVerificationChannel(e.target.value)}
+                                    >
+                                        <option value="email">Email OTP</option>
+                                        <option value="sms">Phone SMS OTP</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -377,13 +410,19 @@ export default function Signup() {
           color: rgba(255,255,255,0.5);
         }
 
-        .input-box input {
+        .input-box input,
+        .input-box select {
           width: 100%;
           background: transparent;
           border: none;
           outline: none;
           color: white;
           font-size: 15px;
+        }
+
+        .input-box select option {
+          background: #040b1d;
+          color: white;
         }
 
         .input-box input::placeholder {
@@ -474,6 +513,18 @@ export default function Signup() {
           background: rgba(255, 67, 54, 0.1);
           border: 1px solid rgba(255, 67, 54, 0.3);
           color: #ff4336;
+          padding: 12px 14px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+        }
+
+        .success-message {
+          background: rgba(87, 199, 255, 0.1);
+          border: 1px solid rgba(87, 199, 255, 0.3);
+          color: #66d9ff;
           padding: 12px 14px;
           border-radius: 8px;
           margin-bottom: 20px;
