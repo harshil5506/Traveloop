@@ -3,6 +3,10 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import tripRoutes from "./routes/tripRoutes.js";
+import itineraryRoutes from "./routes/itineraryRoutes.js";
+import activityRoutes from "./routes/activityRoutes.js";
 
 dotenv.config();
 
@@ -11,6 +15,10 @@ import "./config/db.js";
 const app = express();
 
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/trips", tripRoutes);
+app.use("/api/itinerary", itineraryRoutes);
+app.use("/api/activities", activityRoutes);
 
 app.use(cors({
   origin: "http://localhost:5173",
